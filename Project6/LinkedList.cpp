@@ -7,7 +7,7 @@
 
 #include <cstdio>  // For std::remove and std::rename
 
-void removeOrderFromFile(Order* order) {
+void LinkedList::removeOrderFromFile(Order* order) {
     std::ifstream infile("Data1.txt");
     std::ofstream tempfile("temp.txt");
 
@@ -131,7 +131,6 @@ void LinkedList::displayOrders() const {
             << ", Quantity: " << current->order->quantity
             << ", Price: " << current->order->price
             << ", Type: " << (current->order->type == BUY ? "Buy" : "Sell")
-            << ", TIF: " << current->order->tif
             << ", Timestamp: " << formatTimestamp(current->order->timestamp)
             << std::endl;
         current = current->next;

@@ -1,15 +1,14 @@
 #include "Order.h"
 
-Order::Order(int id, const std::string& stockSymbol, double price, int quantity, OrderType type, const std::string& tif)
-    : id(id), stockSymbol(stockSymbol), price(price), quantity(quantity), type(type), timestamp(std::time(nullptr)), tif(tif) {}
+Order::Order(int id, const std::string& stockSymbol, double price, int quantity, OrderType type)
+    : id(id), stockSymbol(stockSymbol), price(price), quantity(quantity), type(type), timestamp(std::time(nullptr)) {}
 
 void Order::displayOrder() const {
     std::cout << "Order ID: " << id
         << ", Stock Symbol: " << stockSymbol
         << ", Quantity: " << quantity
         << ", Price: " << price
-        << ", Type: " << (type == BUY ? "Buy" : "Sell")
-        << ", TIF: " << tif;
+        << ", Type: " << (type == BUY ? "Buy" : "Sell");
 
     char buffer[26];
     ctime_s(buffer, sizeof(buffer), &timestamp); // Using ctime_s for thread safety
@@ -42,9 +41,7 @@ std::time_t Order::getTimestamp() const {
     return timestamp;
 }
 
-std::string Order::getTif() const {
-    return tif;
-}
+
 void Order::reduceQuantity(int qty) {
     quantity -= qty;
 }

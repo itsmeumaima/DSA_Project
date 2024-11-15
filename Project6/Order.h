@@ -15,9 +15,8 @@ public:
     int quantity;
     OrderType type;
     std::time_t timestamp;
-    std::string tif; // Time in Force as a string
 
-    Order(int id, const std::string& stockSymbol, double price, int quantity, OrderType type, const std::string& tif);
+    Order(int id, const std::string& stockSymbol, double price, int quantity, OrderType type);
     void displayOrder() const;
 
     // Getter methods
@@ -27,7 +26,6 @@ public:
     int getQuantity() const;
     OrderType getOrderType() const;
     std::time_t getTimestamp() const;
-    std::string getTif() const;
 
     // Method to reduce quantity
     void reduceQuantity(int amount);

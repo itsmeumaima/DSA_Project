@@ -19,10 +19,21 @@ void displayMenu() {
 void placeNewOrder(OrderBook& orderBook) {
     int id, quantity;
     double price;
-    std::string symbol, orderType, timeInForce;
+    std::string symbol, orderType;
 
     std::cout << "Enter Order ID: ";
     std::cin >> id;
+
+    if (orderBook.isOrderIdDuplicate(id)) {
+        std::cout << "Error: Order ID " << id << " already exists. Please enter a unique ID.\n";
+        return ;  // Exit early if the order ID is a duplicate
+    }
+
+    /*if (orderBook.isOrderIdDuplicate(id)) {
+        std::cout << "Error: Order ID " << id << " already exists.\n";
+        return;
+    }*/
+
     std::cout << "Enter Symbol (e.g., AAPL): ";
     std::cin >> symbol;
     std::cout << "Enter Price: ";
@@ -31,11 +42,9 @@ void placeNewOrder(OrderBook& orderBook) {
     std::cin >> quantity;
     std::cout << "Enter Order Type (BUY/SELL): ";
     std::cin >> orderType;
-    std::cout << "Enter Time in Force (e.g., GTC): ";
-    std::cin >> timeInForce;
 
     Order* newOrder = new Order(id, symbol, price, quantity,
-        (orderType == "BUY" ? BUY : SELL), timeInForce);
+        (orderType == "BUY" ? BUY : SELL));
     orderBook.placeOrder(newOrder);
 
     // Append the new order to the file
@@ -46,8 +55,7 @@ void placeNewOrder(OrderBook& orderBook) {
             << '"' << symbol << '"' << ","
             << price << ","
             << quantity << ","
-            << orderType << ","
-            << '"' << timeInForce << '"' << "\n";
+            << orderType << ","<< "\n";
         outfile.close();
         std::cout << "Order placed successfully and added to the file.\n";
     }
@@ -65,7 +73,7 @@ int main() {
         while (std::getline(myfile, line)) {
             std::stringstream ss(line);
             int id;
-            std::string symbol, actionStr, orderType;
+            std::string symbol, actionStr;
             double price;
             int quantity;
 
@@ -75,21 +83,23 @@ int main() {
             ss >> price; ss.ignore();         // Price (150.00)
             ss >> quantity; ss.ignore();      // Quantity (100)
             std::getline(ss, actionStr, ','); // Action (BUY)
-            std::getline(ss, orderType);      // Order Type (GTC)
+
+            //if (orderBook.isOrderIdDuplicate(id)) {
+            //    std::cout << "Error: Order ID " << id << " already exists. Please enter a unique ID.\n";
+            //    break;  // Exit early if the order ID is a duplicate
+            //}
 
             // Remove any leading or trailing whitespace from the symbol and action
             symbol.erase(0, symbol.find_first_not_of(" \t\n\r\f\v"));
             symbol.erase(symbol.find_last_not_of(" \t\n\r\f\v") + 1);
             actionStr.erase(0, actionStr.find_first_not_of(" \t\n\r\f\v"));
             actionStr.erase(actionStr.find_last_not_of(" \t\n\r\f\v") + 1);
-            orderType.erase(0, orderType.find_first_not_of(" \t\n\r\f\v"));
-            orderType.erase(orderType.find_last_not_of(" \t\n\r\f\v") + 1);
 
             // Convert action string to OrderType enum
             OrderType action = (actionStr == "BUY") ? BUY : SELL;
 
             // Create an Order object
-            Order* neworder = new Order(id, symbol, price, quantity, action, orderType);
+            Order* neworder = new Order(id, symbol, price, quantity, action);
             orderBook.placeOrder(neworder);
         }
         myfile.close();  // Close the file after reading

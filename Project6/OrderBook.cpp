@@ -14,7 +14,7 @@ void OrderBook::reloadOrdersFromFile() {
         while (std::getline(infile, line)) {
             std::stringstream ss(line);
             int id;
-            std::string symbol, orderType, timeInForce;
+            std::string symbol, orderType;
             double price;
             int quantity;
 
@@ -23,10 +23,9 @@ void OrderBook::reloadOrdersFromFile() {
             ss >> price; ss.ignore();
             ss >> quantity; ss.ignore();
             std::getline(ss, orderType, ',');
-            std::getline(ss, timeInForce);
 
             Order* newOrder = new Order(id, symbol, price, quantity,
-                (orderType == "BUY" ? BUY : SELL), timeInForce);
+                (orderType == "BUY" ? BUY : SELL));
             if (orderType == "BUY") {
                 buyOrders.insertOrder(newOrder);
             }
@@ -41,7 +40,11 @@ void OrderBook::reloadOrdersFromFile() {
     }
 }
 
+
 void OrderBook::placeOrder(Order* order) {
+
+    orderIds.insert(order->getId());
+
     if (order->getOrderType() == BUY) {
         buyOrders.insertOrder(order);
         buyOrdersQueue.push(order);
@@ -52,6 +55,7 @@ void OrderBook::placeOrder(Order* order) {
     }
     undoStack.push(UndoOperation(UndoOperation::PLACE, order));
 }
+
 
 // Remove an order and add the undo operation
 void OrderBook::removeOrder(Order* order) {
@@ -93,6 +97,9 @@ void OrderBook::matchOrders() {
     while (!buyOrdersQueue.empty() && !sellOrdersQueue.empty()) {
         Order* highestBuy = buyOrdersQueue.top();
         Order* lowestSell = sellOrdersQueue.top();
+        /*if (highestBuy->getStockSymbol() != lowestSell->getStockSymbol()) {
+            return;
+        }*/
 
         std::cout << "Trying to match Buy Order ID: " << highestBuy->getId()
             << " (Price: " << highestBuy->getPrice() << ", Quantity: " << highestBuy->getQuantity() << ") "
@@ -110,8 +117,7 @@ void OrderBook::matchOrders() {
                 highestBuy->getStockSymbol(),
                 executedPrice,
                 executedQuantity,
-                BUY,   // Could be adjusted depending on the logic
-                "Immediate"  // Dummy time in force
+                BUY   // Could be adjusted depending on the logic
             ));
 
             // Display executed trade
@@ -141,6 +147,12 @@ void OrderBook::matchOrders() {
     }
 }
 
+//bool isOrderIdDuplicate(int orderId) {
+//    return orderIds.find(orderId) != orderIds.end();
+//}
+bool OrderBook::isOrderIdDuplicate(int orderId) {
+    return orderIds.find(orderId) != orderIds.end();
+}
 
 void OrderBook::processOrderMatching() {
     matchOrders();
@@ -153,9 +165,6 @@ void OrderBook::displayOrderBook() const {
     std::cout << "Sell Orders:" << std::endl;
     sellOrders.displayOrders();
 }
-
-
-
 void OrderBook::displayExecutedTrades() const {
     std::cout << "Executed Trades:" << std::endl;
     for (const auto& trade : executedTrades) {

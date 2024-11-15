@@ -19,6 +19,8 @@ public:
     void removeOrders(Order* order);
     void displayOrders() const;
     void clear();
+    void removeOrderFromFile(Order* order);
+    //std::string formatTimestamp(const std::time_t& time);
 };
 
 #endif // LINKEDLIST_H
