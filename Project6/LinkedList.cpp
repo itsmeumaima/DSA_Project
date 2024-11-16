@@ -4,12 +4,11 @@
 #include <sstream>
 #include <cstdio> 
 #include <ctime>
-
 #include <cstdio>  // For std::remove and std::rename
 
 void LinkedList::removeOrderFromFile(Order* order) {
     std::ifstream infile("Data1.txt");
-    std::ofstream tempfile("temp.txt");
+    std::ofstream tempfile("temp.txt");//Opens (or creates) a temporary file temp.txt for writing the updated content.
 
     if (infile.is_open() && tempfile.is_open()) {
         std::string line;
@@ -20,7 +19,7 @@ void LinkedList::removeOrderFromFile(Order* order) {
             double price;
             int quantity;
 
-            ss >> id; ss.ignore();
+            ss >> id; ss.ignore();//ss.ignore() is used to skip over commas 
             std::getline(ss, symbol, ',');
             ss >> price; ss.ignore();
             ss >> quantity; ss.ignore();
@@ -37,7 +36,7 @@ void LinkedList::removeOrderFromFile(Order* order) {
         tempfile.close();
 
         // Replace the original file with the updated file
-        if (std::remove("Data1.txt") != 0) {
+        if (std::remove("Data1.txt") != 0) {    //The original file Data1.txt is deleted using std::remove().
             std::cerr << "Error deleting the original file.\n";
         }
 
@@ -90,30 +89,33 @@ void LinkedList::removeOrders(Order* order) {
     delete current;
 }
 void LinkedList::insertOrder(Order* order) {
-    LinkedListNode* newNode = new LinkedListNode(order);
-    if (head == nullptr) {
-        head = newNode;
+    LinkedListNode* newNode = new LinkedListNode(order);  // Create a new node with the given order
+
+    if (head == nullptr) {  
+        head = newNode;  // If the list is empty, make the new node the head
     }
-    else {
-        LinkedListNode* current = head;
-        LinkedListNode* prev = nullptr;
+    else {  
+        LinkedListNode* current = head;  // Start from the head of the list
+        LinkedListNode* prev = nullptr;  // To keep track of the previous node
 
+        // The condition current->order->price >= order->price ensures that the list is maintained in descending order of prices.
         while (current != nullptr && current->order->price >= order->price) {
-            prev = current;
-            current = current->next;
+            prev = current;  // Move the prev pointer
+            current = current->next;  // Move the current pointer
         }
 
-        if (prev == nullptr) {
-            newNode->next = head;
-            head = newNode;
+        if (prev == nullptr) {  // If the new node should be inserted at the beginning
+            newNode->next = head;  // The new node's next points to the old head
+            head = newNode;  // The new node becomes the new head of the list
         }
-        else {
-            prev->next = newNode;
-            newNode->next = current;
+        else {  // If the new node should be inserted in the middle or end
+            prev->next = newNode;  // Link the previous node to the new node
+            newNode->next = current;  // Link the new node to the next node in the list
         }
     }
 }
-void LinkedList::clear() {
+
+void LinkedList::clear() {  //delete all the nodes in the linked list
     LinkedListNode* current = head;
     while (current != nullptr) {
         LinkedListNode* next = current->next;
@@ -135,4 +137,4 @@ void LinkedList::displayOrders() const {
             << std::endl;
         current = current->next;
     }
-}
+}  

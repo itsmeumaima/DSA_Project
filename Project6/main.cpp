@@ -28,12 +28,6 @@ void placeNewOrder(OrderBook& orderBook) {
         std::cout << "Error: Order ID " << id << " already exists. Please enter a unique ID.\n";
         return ;  // Exit early if the order ID is a duplicate
     }
-
-    /*if (orderBook.isOrderIdDuplicate(id)) {
-        std::cout << "Error: Order ID " << id << " already exists.\n";
-        return;
-    }*/
-
     std::cout << "Enter Symbol (e.g., AAPL): ";
     std::cin >> symbol;
     std::cout << "Enter Price: ";
@@ -57,7 +51,7 @@ void placeNewOrder(OrderBook& orderBook) {
             << quantity << ","
             << orderType << ","<< "\n";
         outfile.close();
-        std::cout << "Order placed successfully and added to the file.\n";
+        std::cout << "Order placed successfully.\n";
     }
     else {
         std::cerr << "Unable to open the file for writing.\n";
@@ -84,10 +78,7 @@ int main() {
             ss >> quantity; ss.ignore();      // Quantity (100)
             std::getline(ss, actionStr, ','); // Action (BUY)
 
-            //if (orderBook.isOrderIdDuplicate(id)) {
-            //    std::cout << "Error: Order ID " << id << " already exists. Please enter a unique ID.\n";
-            //    break;  // Exit early if the order ID is a duplicate
-            //}
+            
 
             // Remove any leading or trailing whitespace from the symbol and action
             symbol.erase(0, symbol.find_first_not_of(" \t\n\r\f\v"));
