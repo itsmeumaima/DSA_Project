@@ -5,30 +5,31 @@
 #include <cstdio> 
 #include <ctime>
 #include <cstdio>  // For std::remove and std::rename
+using namespace std;
 
 void LinkedList::removeOrderFromFile(Order* order) {
-    std::ifstream infile("Data1.txt");
-    std::ofstream tempfile("temp.txt");//Opens (or creates) a temporary file temp.txt for writing the updated content.
+    ifstream infile("Data1.txt");
+    ofstream tempfile("temp.txt");//Opens (or creates) a temporary file temp.txt for writing the updated content.
 
     if (infile.is_open() && tempfile.is_open()) {
-        std::string line;
-        while (std::getline(infile, line)) {
-            std::stringstream ss(line);
+        string line;
+        while (getline(infile, line)) {
+            stringstream ss(line);
             int id;
-            std::string symbol, orderType, timeInForce;
+            string symbol, orderType, timeInForce;
             double price;
             int quantity;
 
             ss >> id; ss.ignore();//ss.ignore() is used to skip over commas 
-            std::getline(ss, symbol, ',');
+            getline(ss, symbol, ',');
             ss >> price; ss.ignore();
             ss >> quantity; ss.ignore();
-            std::getline(ss, orderType, ',');
-            std::getline(ss, timeInForce);
+            getline(ss, orderType, ',');
+            getline(ss, timeInForce);
 
             // If the order ID matches the one to remove, skip writing it to the file
             if (id != order->getId()) {
-                tempfile << line << std::endl;
+                tempfile << line << endl;
             }
         }
 
@@ -36,18 +37,19 @@ void LinkedList::removeOrderFromFile(Order* order) {
         tempfile.close();
 
         // Replace the original file with the updated file
-        if (std::remove("Data1.txt") != 0) {    //The original file Data1.txt is deleted using std::remove().
-            std::cerr << "Error deleting the original file.\n";
+        if (remove("Data1.txt") != 0) {    //The original file Data1.txt is deleted using std::remove().
+            cerr << "Error deleting the original file.\n";
         }
 
-        if (std::rename("temp.txt", "Data1.txt") != 0) {
-            std::cerr << "Error renaming the temporary file.\n";
+        if (rename("temp.txt", "Data1.txt") != 0) {
+            cerr << "Error renaming the temporary file.\n";
         }
     }
     else {
-        std::cerr << "Unable to open the file for updating.\n";
+        cerr << "Unable to open the file for updating.\n";
     }
 }
+
 // Helper function to format time manually
 std::string formatTimestamp(const std::time_t& time) {
     std::tm tm;
@@ -65,7 +67,6 @@ LinkedList::~LinkedList() {
         current = next;
     }
 }
-
 void LinkedList::removeOrders(Order* order) {
     LinkedListNode* current = head;
     LinkedListNode* prev = nullptr;
@@ -128,13 +129,13 @@ void LinkedList::clear() {  //delete all the nodes in the linked list
 void LinkedList::displayOrders() const {
     LinkedListNode* current = head;
     while (current != nullptr) {
-        std::cout << "Order ID: " << current->order->id
+        cout << "Order ID: " << current->order->id
             << ", Stock Symbol: " << current->order->stockSymbol
             << ", Quantity: " << current->order->quantity
             << ", Price: " << current->order->price
             << ", Type: " << (current->order->type == BUY ? "Buy" : "Sell")
             << ", Timestamp: " << formatTimestamp(current->order->timestamp)
-            << std::endl;
+            << endl;
         current = current->next;
     }
 }  

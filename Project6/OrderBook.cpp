@@ -1,54 +1,48 @@
 #include "OrderBook.h"
+#include "LinkedList.h"
 #include <iostream>
 #include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <cctype>
+using namespace std;
 
-void OrderBook::reloadOrdersFromFile() {
-    std::ifstream infile("Data1.txt");
-    if (infile.is_open()) {
-        std::string line;
-        buyOrders.clear();  // Clear current orders before reloading
-        sellOrders.clear();
-
-        while (std::getline(infile, line)) {
-            std::stringstream ss(line);
-            int id;
-            std::string symbol, orderType;
-            double price;
-            int quantity;
-
-            ss >> id; ss.ignore();
-            std::getline(ss, symbol, ',');
-            ss >> price; ss.ignore();
-            ss >> quantity; ss.ignore();
-            std::getline(ss, orderType, ',');
-
-            Order* newOrder = new Order(id, symbol, price, quantity,
-                (orderType == "BUY" ? BUY : SELL));
-            if (orderType == "BUY") {
-                buyOrders.insertOrder(newOrder);
-            }
-            else {
-                sellOrders.insertOrder(newOrder);
-            }
-        }
-        infile.close();
+void OrderBook::addOrdertoFile(Order* order) {
+    ofstream outfile;
+    string action;
+    if (order->type == '0') {
+        action = "BUY";
     }
     else {
-        std::cerr << "Error opening file for reloading orders." << std::endl;
+        action = "SELL";
+    }
+    outfile.open("Data1.txt", ios::app);
+    if (outfile.is_open()) {
+        outfile << order->id << ","
+             << order->stockSymbol  << ","
+            << order->price << ","
+            << order->quantity << ","
+            << action  << "\n";
+        outfile.close();
+        //std::cout << "Order placed successfully.\n";
+    }
+    else {
+        cerr << "Unable to open the file for writing.\n";
     }
 }
-std::string toLowerCase(const std::string& str) {
-    std::string lowerStr = str;
-    std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(),
-        [](unsigned char c) { return std::tolower(c); });
-    return lowerStr;
+string OrderBook:: toUpperCase(const string& str) {
+    string result = str;
+    transform(result.begin(), result.end(), result.begin(), ::toupper);
+    return result;
 }
+//string OrderBook::toLowerCase(const std::string& str) {
+//    std::string lowerStr = str;
+//    std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(),
+//        [](unsigned char c) { return std::tolower(c); });
+//    return lowerStr;
+//}
 
 void OrderBook::placeOrder(Order* order) {
-
     orderIds.insert(order->getId());
 
     if (order->getOrderType() == BUY) {
@@ -62,94 +56,158 @@ void OrderBook::placeOrder(Order* order) {
     undoStack.push(UndoOperation(UndoOperation::PLACE, order));
 }
 
-
-// Remove an order and add the undo operation
 void OrderBook::removeOrder(Order* order) {
     if (order->getOrderType() == BUY) {
-        /*buyOrdersQueue.remove(order);*/
         buyOrders.removeOrders(order);
+        //buyOrdersQueue.remove(order);
     }
     else {
-        /*sellOrdersQueue.remove(order);*/
         sellOrders.removeOrders(order);
+        //sellOrdersQueue.remove(order);
     }
-    // Add the operation to the undo stack
     undoStack.push(UndoOperation(UndoOperation::REMOVE, order));
 }
+void removeLastElement(set<int>& orderIds) {
+    if (!orderIds.empty()) {
+        auto lastElementIt = orderIds.rbegin();  // Get iterator to the largest element
+        int lastElement = *lastElementIt;        // Dereference to get the value
+        orderIds.erase(lastElement);             // Remove the element by value
+        std::cout << "Last element (" << lastElement << ") removed from the set.\n";
+    }
+    else {
+        std::cout << "The set is empty. No element to remove.\n";
+    }
+}
 
-// Undo the last operation (either place or remove)
 void OrderBook::undoLastOperation() {
     if (!undoStack.empty()) {
         UndoOperation lastOperation = undoStack.top();
         undoStack.pop();
 
         if (lastOperation.type == UndoOperation::PLACE) {
+            // Remove the order from internal data structures
             removeOrder(lastOperation.order);
+            removeLastElement(orderIds);
         }
         else if (lastOperation.type == UndoOperation::REMOVE) {
+            // Re-add the order to internal data structures
             placeOrder(lastOperation.order);
+            addOrdertoFile(lastOperation.order);
+
         }
         std::cout << "Undo operation completed.\n";
-        reloadOrdersFromFile();  // Reload the orders from the file
     }
     else {
         std::cout << "No operations to undo.\n";
     }
 }
-void OrderBook::matchOrders() {
-    while (!buyOrdersQueue.empty() && !sellOrdersQueue.empty()) {
-        Order* highestBuy = buyOrdersQueue.top();
-        Order* lowestSell = sellOrdersQueue.top();
-        /*if (highestBuy->getStockSymbol() == lowestSell->getStockSymbol()) {*/
-            std::cout << "Trying to match Buy Order ID: " << highestBuy->getId()
-                << " (Price: " << highestBuy->getPrice() << ", Quantity: " << highestBuy->getQuantity() << ") "
-                << "with Sell Order ID: " << lowestSell->getId()
-                << " (Price: " << lowestSell->getPrice() << ", Quantity: " << lowestSell->getQuantity() << ")"
-                << std::endl;
-
-            if (highestBuy->getPrice() >= lowestSell->getPrice()) {
-                int executedQuantity = std::min(highestBuy->getQuantity(), lowestSell->getQuantity());
-                double executedPrice = (highestBuy->getPrice() + lowestSell->getPrice()) / 2.0;
-
-                // Store the executed trade in executedTrades
-                executedTrades.push_back(new Order(
-                    -1,  // Assign a dummy ID or leave as needed
-                    highestBuy->getStockSymbol(),
-                    executedPrice,
-                    executedQuantity,
-                    BUY   // Could be adjusted depending on the logic
-                ));
-
-                // Display executed trade
-                std::cout << "Executed Trade: " << executedQuantity
-                    << " shares at $" << executedPrice
-                    << " between Buy Order ID: " << highestBuy->getId()
-                    << " and Sell Order ID: " << lowestSell->getId() << std::endl;
-
-                highestBuy->reduceQuantity(executedQuantity);
-                lowestSell->reduceQuantity(executedQuantity);
-
-                if (highestBuy->getQuantity() == 0) {
-                    buyOrdersQueue.pop();
-                    buyOrders.removeOrders(highestBuy);
-                    delete highestBuy;
-                }
-
-                if (lowestSell->getQuantity() == 0) {
-                    sellOrdersQueue.pop();
-                    sellOrders.removeOrders(lowestSell);
-                    delete lowestSell;
-                }
-            }
-            else {
-                break; // No more matching possible
-            }
-        /*}
-        std::cout << "No order matches..." << std::endl;
-        return;*/
+void OrderBook::updateOrderInFile(Order* order) {
+    std::ifstream infile("Data1.txt");
+    if (!infile.is_open()) {
+        std::cerr << "Error opening file for reading." << std::endl;
+        return;
     }
-} 
 
+    std::vector<std::string> lines;
+    std::string line;
+    while (std::getline(infile, line)) {
+        std::stringstream ss(line);
+        int id;
+        std::string symbol, orderType;
+        double price;
+        int quantity;
+
+        ss >> id; ss.ignore();
+        std::getline(ss, symbol, ',');
+        ss >> price; ss.ignore();
+        ss >> quantity; ss.ignore();
+        std::getline(ss, orderType, ',');
+
+        if (id == order->getId()) {
+            // Update the quantity
+            quantity = order->getQuantity();
+        }
+
+        std::ostringstream updatedLine;
+        updatedLine << id << ","
+             << symbol  << ","
+            << price << ","
+            << quantity << ","
+            << orderType;
+        lines.push_back(updatedLine.str());
+    }
+    infile.close();
+
+    std::ofstream outfile("Data1.txt");
+    if (!outfile.is_open()) {
+        std::cerr << "Error opening file for writing." << std::endl;
+        return;
+    }
+
+    for (const auto& l : lines) {
+        outfile << l << "\n";
+    }
+    outfile.close();
+}
+ void OrderBook::matchOrders() {
+     while (!buyOrdersQueue.empty() && !sellOrdersQueue.empty()) {
+         Order* highestBuy = buyOrdersQueue.top();
+         Order* lowestSell = sellOrdersQueue.top();
+         std::cout << highestBuy->getStockSymbol() << "\n";
+         std::cout << lowestSell->getStockSymbol() << "\n";
+         if (highestBuy->getStockSymbol() == lowestSell->getStockSymbol()) {
+             std::cout << "Trying to match Buy Order ID: " << highestBuy->getId()
+                 << " (Price: " << highestBuy->getPrice() << ", Quantity: " << highestBuy->getQuantity() << ") "
+                 << "with Sell Order ID: " << lowestSell->getId()
+                 << " (Price: " << lowestSell->getPrice() << ", Quantity: " << lowestSell->getQuantity() << ")"
+                 << endl;
+
+             if (highestBuy->getPrice() >= lowestSell->getPrice()) {
+                 int executedQuantity = std::min(highestBuy->getQuantity(), lowestSell->getQuantity());
+                 double executedPrice = (highestBuy->getPrice() + lowestSell->getPrice()) / 2.0;
+
+                 // Store the executed trade in executedTrades
+                 executedTrades.push_back(new Order(
+                     -1,  // Assign a dummy ID
+                     highestBuy->getStockSymbol(),
+                     executedPrice,
+                     executedQuantity,
+                     BUY   
+                 ));
+
+                 // Display executed trade
+                 std::cout << "Executed Trade: " << executedQuantity
+                     << " shares at $" << executedPrice
+                     << " between Buy Order ID: " << highestBuy->getId()
+                     << " and Sell Order ID: " << lowestSell->getId() << std::endl;
+
+                 highestBuy->reduceQuantity(executedQuantity);
+                 updateOrderInFile(highestBuy);
+                 lowestSell->reduceQuantity(executedQuantity);
+                 updateOrderInFile(lowestSell);
+
+                 if (highestBuy->getQuantity() == 0) {
+                     buyOrdersQueue.pop();
+                     buyOrders.removeOrders(highestBuy);
+                     delete highestBuy;
+                 }
+
+                 if (lowestSell->getQuantity() == 0) {
+                     sellOrdersQueue.pop();
+                     sellOrders.removeOrders(lowestSell);
+                     delete lowestSell;
+                 }
+             }
+             else {
+                 break; // No more matching possible
+             }
+         }
+         else {
+             std::cout << "No order matches..." << endl;
+             return;
+         }         
+     }
+ }
 bool OrderBook::isOrderIdDuplicate(int orderId) {
     return orderIds.find(orderId) != orderIds.end();
 }
@@ -159,10 +217,10 @@ void OrderBook::processOrderMatching() {
 }
 
 void OrderBook::displayOrderBook() const {
-    std::cout << "Buy Orders:" << std::endl;
+    std::cout << "Buy Orders:" << endl;
     buyOrders.displayOrders();
     std::cout << "\n";
-    std::cout << "Sell Orders:" << std::endl;
+    std::cout << "Sell Orders:" <<endl;
     sellOrders.displayOrders();
 }
 void OrderBook::displayExecutedTrades() const {
@@ -172,7 +230,7 @@ void OrderBook::displayExecutedTrades() const {
     }
     else {
         for (const auto& trade : executedTrades) {
-            trade->displayOrder();//we create executedTrades of datatype order class
+            trade->displayOrder();
         }
     }
 }

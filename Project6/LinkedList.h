@@ -20,6 +20,7 @@ public:
     void displayOrders() const;
     void clear();
     void removeOrderFromFile(Order* order);//after the order being removed then it must have to remove it from the text file
+
 };
 
 #endif // LINKEDLIST_H

@@ -4,81 +4,84 @@
 #include <string>
 #include "OrderBook.h"
 #include "Order.h"
+using namespace std;
 
 void displayMenu() {
-    std::cout << "\nMenu:\n";
-    std::cout << "1. Place a new order\n";
-    std::cout << "2. Display current order book\n";
-    std::cout << "3. Process order matching\n";
-    std::cout << "4. Display executed trades\n";
-    std::cout << "5. Undo last operation\n";  // New option for undo
-    std::cout << "6. Exit\n";
-    std::cout << "Choose an option: ";
+    cout << "\nMenu:\n";
+    cout << "1. Place a new order\n";
+    cout << "2. Display current order book\n";
+    cout << "3. Process order matching\n";
+    cout << "4. Display executed trades\n";
+    cout << "5. Undo last operation\n";  
+    cout << "6. Exit\n";
+    cout << "Choose an option: ";
 }
 
 void placeNewOrder(OrderBook& orderBook) {
     int id, quantity;
     double price;
-    std::string symbol, orderType;
+    string symbol, orderType;
 
-    std::cout << "Enter Order ID: ";
-    std::cin >> id;
+    cout << "Enter Order ID: ";
+    cin >> id;
 
     if (orderBook.isOrderIdDuplicate(id)) {
-        std::cout << "Error: Order ID " << id << " already exists. Please enter a unique ID.\n";
+        cout << "Error: Order ID " << id << " already exists. Please enter a unique ID.\n";
         return ;  // Exit early if the order ID is a duplicate
     }
-    std::cout << "Enter Symbol (e.g., AAPL): ";
-    std::cin >> symbol;
-    std::cout << "Enter Price: ";
-    std::cin >> price;
-    std::cout << "Enter Quantity: ";
-    std::cin >> quantity;
-    std::cout << "Enter Order Type (BUY/SELL): ";
-    std::cin >> orderType;
+    cout << "Enter Symbol (e.g., AAPL): ";
+    cin >> symbol;
+    cout << "Enter Price: ";
+    cin >> price;
+    cout << "Enter Quantity: ";
+    cin >> quantity;
+    cout << "Enter Order Type (BUY/SELL): ";
+    cin >> orderType;
+    symbol=orderBook.toUpperCase(symbol);
+    orderType = orderBook.toUpperCase(orderType);
 
     Order* newOrder = new Order(id, symbol, price, quantity,
         (orderType == "BUY" ? BUY : SELL));
     orderBook.placeOrder(newOrder);
 
     // Append the new order to the file
-    std::ofstream outfile;
-    outfile.open("Data1.txt", std::ios::app);
+    ofstream outfile;
+    outfile.open("Data1.txt", ios::app);
     if (outfile.is_open()) {
-        outfile << "\n" << id << ","
-            << '"' << symbol << '"' << ","
+        //outfile << "\n" << id << ","
+        outfile<<id<<","
+            << symbol  << ","
             << price << ","
             << quantity << ","
-            << orderType << ","<< "\n";
+            << orderType << "\n";
         outfile.close();
-        std::cout << "Order placed successfully.\n";
+        cout << "Order placed successfully.\n";
     }
     else {
-        std::cerr << "Unable to open the file for writing.\n";
+        cerr << "Unable to open the file for writing.\n";
     }
 }
-
 int main() {
+
+    cout << "------------WELCOME TO THE STOCK MARKET ORDER BOOK APPLICATION-----------------" << "\n\n";
     OrderBook orderBook;
-    std::fstream myfile;
-    myfile.open("Data1.txt", std::ios::in);  // Open the file in read mode
+    fstream myfile;
+    myfile.open("Data1.txt", ios::in);  // Open the file in read mode
     if (myfile.is_open()) {
-        std::string line;
-        while (std::getline(myfile, line)) {
-            std::stringstream ss(line);
+        string line;
+        while (getline(myfile, line)) {
+            stringstream ss(line);
             int id;
-            std::string symbol, actionStr;
+            string symbol, actionStr;
             double price;
             int quantity;
 
             // Parse the line into individual values using comma as delimiter
             ss >> id; ss.ignore();            // ID (1)
-            std::getline(ss, symbol, ',');    // Symbol (AAPL)
+            getline(ss, symbol, ',');    // Symbol (AAPL)
             ss >> price; ss.ignore();         // Price (150.00)
             ss >> quantity; ss.ignore();      // Quantity (100)
-            std::getline(ss, actionStr, ','); // Action (BUY)
-
-            
+            getline(ss, actionStr, ','); // Action (BUY)            
 
             // Remove any leading or trailing whitespace from the symbol and action
             symbol.erase(0, symbol.find_first_not_of(" \t\n\r\f\v"));
@@ -86,6 +89,8 @@ int main() {
             actionStr.erase(0, actionStr.find_first_not_of(" \t\n\r\f\v"));
             actionStr.erase(actionStr.find_last_not_of(" \t\n\r\f\v") + 1);
 
+            symbol = orderBook.toUpperCase(symbol);
+            actionStr = orderBook.toUpperCase(actionStr);
             // Convert action string to OrderType enum
             OrderType action = (actionStr == "BUY") ? BUY : SELL;
 
@@ -96,7 +101,7 @@ int main() {
         myfile.close();  // Close the file after reading
     }
     else {
-        std::cout << "Unable to open the file!" << std::endl;
+        cout << "Unable to open the file!" <<endl;
     }
 
     int choice;
@@ -104,7 +109,7 @@ int main() {
 
     while (!exit) {
         displayMenu();
-        std::cin >> choice;
+        cin >> choice;
 
         switch (choice) {
         case 1:
@@ -126,7 +131,7 @@ int main() {
             exit = true;
             break;
         default:
-            std::cout << "Invalid option. Please try again.\n";
+            cout << "Invalid option. Please try again.\n";
             break;
         }
     }
