@@ -5,26 +5,26 @@
 #include "Order.h"
 #include <vector>
 #include <queue>
-#include <stack>
 #include <set>
 using namespace std;
+#include "Stack.h" 
 
-// Struct to handle undo operations (place/remove)
-struct UndoOperation {
-    enum OperationType { PLACE, REMOVE } type;
+class UndoOperation {
+public:
+    enum Type { PLACE, REMOVE };
+    Type type;
     Order* order;
 
-    UndoOperation(OperationType t, Order* o) : type(t), order(o) {}
+    UndoOperation(Type type, Order* order) : type(type), order(order) {}
+    UndoOperation() : type(PLACE), order(nullptr) {}
 };
 
-// This comparator ensures that the highest price buy orders are given the highest priority in the buy orders queue.
 struct CompareBuy {
     bool operator()(Order* const& o1, Order* const& o2) {
         return o1->getPrice() < o2->getPrice(); // Higher price has higher priority
     }
 };
 
-//This comparator ensures that the lowest price sell orders are given the highest priority in the sell orders queue
 struct CompareSell {
     bool operator()(Order* const& o1, Order* const& o2) {
         return o1->getPrice() > o2->getPrice(); // Lower price has higher priority
@@ -33,32 +33,30 @@ struct CompareSell {
 
 class OrderBook {
 private:
-    // Priority queues for buy and sell orders
-    priority_queue<Order*,vector<Order*>, CompareBuy> buyOrdersQueue;
-    priority_queue<Order*,vector<Order*>, CompareSell> sellOrdersQueue;
+    priority_queue<Order*, vector<Order*>, CompareBuy> buyOrdersQueue;
+    priority_queue<Order*, vector<Order*>, CompareSell> sellOrdersQueue;
 
-    LinkedList buyOrders;//make a seperate object of linkedList class for buy orders
-    LinkedList sellOrders;//make a seperate object of linkedlist class for sell orders
-    vector<Order*> executedTrades;//a vector to store executed trade
+    LinkedList buyOrders;
+    LinkedList sellOrders;
+    vector<Order*> executedTrades;
+    Stack<UndoOperation> undoStack;
 
-    stack<UndoOperation> undoStack; //A stack to store operations that can be undone(place / remove).
-
-    set<int> orderIds;  // Set to track order IDs to check for duplicates
+    set<int> orderIds;
 
     void matchOrders();
 
 public:
-
+    void removeOrder(Order* order);
     string toUpperCase(const string& str);
-    void placeOrder(Order* order);   // Function to place an order
-    void processOrderMatching();     // Process order matching
-    void displayOrderBook() const;   // Display order book
-    void displayExecutedTrades() const;  // Display executed trades
-    void undoLastOperation();       // Undo the last operation
-    void removeOrder(Order* order); // Remove an order from the book
+    void placeOrder(Order* order);
+    void processOrderMatching();
+    void displayOrderBook() const;
+    void displayExecutedTrades() const;
+    void undoLastOperation();
     void addOrdertoFile(Order* order);
-    bool isOrderIdDuplicate(int orderId);  // Function to check for duplicate order ID
+    bool isOrderIdDuplicate(int orderId);
     void updateOrderInFile(Order* order);
 };
+#include "Stack.tpp" // Include the template implementation file
 
 #endif // ORDERBOOK_H

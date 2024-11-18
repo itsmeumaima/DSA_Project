@@ -2,6 +2,8 @@
 #include <sstream>
 #include <fstream>
 #include <string>
+#include <limits>  // For numeric_limits
+#include <cctype>  // For toupper
 #include "OrderBook.h"
 #include "Order.h"
 using namespace std;
@@ -17,6 +19,15 @@ void displayMenu() {
     cout << "Choose an option: ";
 }
 
+bool isAlpha(const string& str) {
+    for (char c : str) {
+        if (!isalpha(c)) {
+            return false;  // Return false if non-alphabetic character is found
+        }
+    }
+    return true;
+}
+
 void placeNewOrder(OrderBook& orderBook) {
     int id, quantity;
     double price;
@@ -27,19 +38,54 @@ void placeNewOrder(OrderBook& orderBook) {
 
     if (orderBook.isOrderIdDuplicate(id)) {
         cout << "Error: Order ID " << id << " already exists. Please enter a unique ID.\n";
-        return ;  // Exit early if the order ID is a duplicate
+        return;  // Exit early if the order ID is a duplicate
     }
+
+    // Error handling for symbol input
     cout << "Enter Symbol (e.g., AAPL): ";
     cin >> symbol;
+    while (symbol.empty() || !isAlpha(symbol)) {  // Ensure symbol is alphabetic and not empty
+        cout << "Invalid input. Please enter a valid symbol (alphabetic characters only): ";
+        cin >> symbol;
+    }
+    // Convert symbol to uppercase
+    for (char& c : symbol) {
+        c = toupper(c);
+    }
+
+    // Error handling for price input
     cout << "Enter Price: ";
-    cin >> price;
+    while (!(cin >> price) || price <= 0) {
+        cout << "Invalid input. Please enter a valid price (positive number): ";
+        cin.clear();  // Clear the error flag
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // Ignore invalid input
+    }
+
+    // Error handling for quantity input
     cout << "Enter Quantity: ";
-    cin >> quantity;
+    while (!(cin >> quantity) || quantity <= 0) {
+        cout << "Invalid input. Please enter a valid quantity (positive number): ";
+        cin.clear();  // Clear the error flag
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');  // Ignore invalid input
+    }
+
+    // Error handling for order type input
     cout << "Enter Order Type (BUY/SELL): ";
     cin >> orderType;
-    symbol=orderBook.toUpperCase(symbol);
-    orderType = orderBook.toUpperCase(orderType);
+    // Convert order type to uppercase
+    for (char& c : orderType) {
+        c = toupper(c);
+    }
+    while (orderType != "BUY" && orderType != "SELL") {
+        cout << "Invalid order type. Please enter 'BUY' or 'SELL': ";
+        cin >> orderType;
+        // Convert to uppercase to avoid case sensitivity issues
+        for (char& c : orderType) {
+            c = toupper(c);
+        }
+    }
 
+    // Create new order
     Order* newOrder = new Order(id, symbol, price, quantity,
         (orderType == "BUY" ? BUY : SELL));
     orderBook.placeOrder(newOrder);
@@ -48,9 +94,8 @@ void placeNewOrder(OrderBook& orderBook) {
     ofstream outfile;
     outfile.open("Data1.txt", ios::app);
     if (outfile.is_open()) {
-        //outfile << "\n" << id << ","
-        outfile<<id<<","
-            << symbol  << ","
+        outfile << id << ","
+            << symbol << ","
             << price << ","
             << quantity << ","
             << orderType << "\n";
@@ -63,7 +108,7 @@ void placeNewOrder(OrderBook& orderBook) {
 }
 int main() {
 
-    cout << "------------WELCOME TO THE STOCK MARKET ORDER BOOK APPLICATION-----------------" << "\n\n";
+    cout << "------------WELCOME TO THE STOCK MARKET ORDER BOOK APPLICATION-----------------" << "\n";
     OrderBook orderBook;
     fstream myfile;
     myfile.open("Data1.txt", ios::in);  // Open the file in read mode
@@ -125,7 +170,7 @@ int main() {
             orderBook.displayExecutedTrades();
             break;
         case 5:
-            orderBook.undoLastOperation();  // Call undo
+            orderBook.undoLastOperation();  
             break;
         case 6:
             exit = true;

@@ -130,12 +130,16 @@
     <ClInclude Include="LinkedList.h" />
     <ClInclude Include="Order.h" />
     <ClInclude Include="OrderBook.h" />
+    <ClInclude Include="Stack.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="LinkedList.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Order.cpp" />
     <ClCompile Include="OrderBook.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Stack.tpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -32,6 +32,9 @@ public:
 
     // Method to reduce quantity after matching and any trade executed
     void reduceQuantity(int amount);
+    //void reducePrice(int executedQuantity, int totalQuantity);
+    void setPrice(double newPrice);
+
 };
 
 #endif // ORDER_H

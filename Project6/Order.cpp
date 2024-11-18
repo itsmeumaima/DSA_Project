@@ -43,8 +43,11 @@ OrderType Order::getOrderType() const {
 time_t Order::getTimestamp() const {
     return timestamp;
 }
-
 // reduces the quantity after trade being executed
 void Order::reduceQuantity(int qty) {
     quantity -= qty;
 }  
+void Order::setPrice(double newPrice) {
+    price = newPrice;
+}
+
