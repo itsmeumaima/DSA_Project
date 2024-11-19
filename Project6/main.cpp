@@ -108,7 +108,7 @@ void placeNewOrder(OrderBook& orderBook) {
 }
 int main() {
 
-    cout << "------------WELCOME TO THE STOCK MARKET ORDER BOOK APPLICATION-----------------" << "\n";
+    cout << "\n\n-------------------------------WELCOME TO THE STOCK MARKET ORDER BOOK APPLICATION--------------------------------------- " << "\n";
     OrderBook orderBook;
     fstream myfile;
     myfile.open("Data1.txt", ios::in);  // Open the file in read mode
@@ -156,28 +156,45 @@ int main() {
         displayMenu();
         cin >> choice;
 
-        switch (choice) {
-        case 1:
-            placeNewOrder(orderBook);  // Let the user place a new order
-            break;
-        case 2:
-            orderBook.displayOrderBook();
-            break;
-        case 3:
-            orderBook.processOrderMatching();
-            break;
-        case 4:
-            orderBook.displayExecutedTrades();
-            break;
-        case 5:
-            orderBook.undoLastOperation();  
-            break;
-        case 6:
-            exit = true;
-            break;
-        default:
-            cout << "Invalid option. Please try again.\n";
-            break;
+        try {
+            switch (choice) {
+            case 1:
+                placeNewOrder(orderBook);  // Let the user place a new order
+                cout << "\n------------------------------------------------------------------------------------------------------------------------\n";
+                break;
+            case 2:
+                orderBook.displayOrderBook();
+                cout << "\n------------------------------------------------------------------------------------------------------------------------\n";
+                break;
+            case 3:
+                orderBook.processOrderMatching();
+                cout << "\n------------------------------------------------------------------------------------------------------------------------\n";
+                break;
+            case 4:
+                orderBook.displayExecutedTrades();
+                cout << "\n------------------------------------------------------------------------------------------------------------------------\n";
+                break;
+            case 5:
+                orderBook.undoLastOperation();
+                cout << "\n------------------------------------------------------------------------------------------------------------------------\n";
+                break;
+            case 6:
+                exit = true;
+                break;
+            default:
+                throw invalid_argument("Invalid option. Please try again.");
+            }
+        }
+        catch (const invalid_argument& e) {
+            cout << "Error: " << e.what() << endl;
+            cin.clear();  // Clear the error flag
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');  // Ignore invalid input
+        }
+        catch (const runtime_error& e) {
+            cout << "Runtime error: " << e.what() << endl;
+        }
+        catch (const exception& e) {
+            cout << "An error occurred: " << e.what() << endl;
         }
     }
 

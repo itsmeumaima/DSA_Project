@@ -32,7 +32,7 @@ void Stack<T>::push(const T& value) {
     }
     arr[++top] = value;
 }
-
+//typename T means that the stack can hold elements of any type specified when an instance of the stack is created.
 template<typename T>
 T Stack<T>::pop() {
     if (isEmpty()) {

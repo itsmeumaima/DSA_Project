@@ -137,8 +137,6 @@ void OrderBook::matchOrders() {
     while (!buyOrdersQueue.empty() && !sellOrdersQueue.empty()) {
         Order* highestBuy = buyOrdersQueue.top();
         Order* lowestSell = sellOrdersQueue.top();
-        std::cout << highestBuy->getStockSymbol() << "\n";
-        std::cout << lowestSell->getStockSymbol() << "\n";
         if (highestBuy->getStockSymbol() == lowestSell->getStockSymbol()) {
             std::cout << "Trying to match Buy Order ID: " << highestBuy->getId()
                 << " (Price: " << highestBuy->getPrice() << ", Quantity: " << highestBuy->getQuantity() << ") "
@@ -152,7 +150,7 @@ void OrderBook::matchOrders() {
 
                 // Store the executed trade in executedTrades
                 executedTrades.push_back(new Order(
-                    -1,  // Assign a dummy ID
+                    lowestSell->getId(),  // Assign a dummy ID
                     highestBuy->getStockSymbol(),
                     executedPrice,
                     executedQuantity,

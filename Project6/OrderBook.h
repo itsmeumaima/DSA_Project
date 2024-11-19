@@ -6,8 +6,9 @@
 #include <vector>
 #include <queue>
 #include <set>
-using namespace std;
 #include "Stack.h" 
+using namespace std;
+
 
 class UndoOperation {
 public:

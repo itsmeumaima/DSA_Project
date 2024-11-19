@@ -99,29 +99,19 @@ void LinkedList::insertOrder(Order* order) {
 
         // The condition current->order->price >= order->price ensures that the list is maintained in descending order of prices.
         while (current != nullptr && current->order->price >= order->price) {
-            prev = current;  // Move the prev pointer
-            current = current->next;  // Move the current pointer
+            prev = current;  
+            current = current->next;  
         }
 
         if (prev == nullptr) {  // If the new node should be inserted at the beginning
-            newNode->next = head;  // The new node's next points to the old head
-            head = newNode;  // The new node becomes the new head of the list
+            newNode->next = head; 
+            head = newNode;  
         }
         else {  // If the new node should be inserted in the middle or end
             prev->next = newNode;  // Link the previous node to the new node
             newNode->next = current;  // Link the new node to the next node in the list
         }
     }
-}
-
-void LinkedList::clear() {  //delete all the nodes in the linked list
-    LinkedListNode* current = head;
-    while (current != nullptr) {
-        LinkedListNode* next = current->next;
-        delete current;  // Delete the node
-        current = next;
-    }
-    head = nullptr;  // Reset the head to nullptr to indicate an empty list
 }
 
 void LinkedList::displayOrders() const {
